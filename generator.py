@@ -77,9 +77,14 @@ def merge_accounts(accounts):
     for file in ('accounts/givers.yaml', 'accounts/custodians.yaml', 'accounts/bridges.yaml', 'accounts/validators.yaml', 'accounts/scammers.yaml'):
         accounts.extend(yaml.safe_load(open(file)))
     with open('accounts.json', 'w') as out:
+        data = {}
         for a in accounts:
-            a['address'] = normalize_address(a['address'], True)
-        json.dump(accounts, out, indent=" ", sort_keys=True)
+            address = normalize_address(a['address'], True)
+            account_data = {"name": a["name"]}
+            if a.get("require_memo"):
+                account_data["isMemoRequired"] = True
+            data[address] = account_data
+        json.dump(data, out, indent=2, sort_keys=True)
     return main_page
 
 
@@ -92,14 +97,14 @@ def merge_collections():
 
 def main():
     collect_all_dexes()
-    jettons = merge_jettons()
-    collections = merge_collections()
+    #jettons = merge_jettons()
+    # collections = merge_collections()
     accounts = merge_accounts([])
-    jettons_md = "\n".join(["[%s](%s%s) | %s" % (j[0], EXPLORER_JETTONS, normalize_address(j[1], True), normalize_address(j[1], False)) for j in jettons])
-    accounts_md = "\n".join(["[%s](%s%s) | %s" % (j[0], EXPLORER_ACCOUNTS, normalize_address(j[1], True), normalize_address(j[1], False)) for j in accounts])
-    collections_md = "\n".join(["[%s](%s%s) | %s" % (j[0], EXPLORER_COLLECTIONS,  normalize_address(j[1], True), normalize_address(j[1], False)) for j in collections])
+    # jettons_md = "\n".join(["[%s](%s%s) | %s" % (j[0], EXPLORER_JETTONS, normalize_address(j[1], True), normalize_address(j[1], False)) for j in jettons])
+    # accounts_md = "\n".join(["[%s](%s%s) | %s" % (j[0], EXPLORER_ACCOUNTS, normalize_address(j[1], True), normalize_address(j[1], False)) for j in accounts])
+    # collections_md = "\n".join(["[%s](%s%s) | %s" % (j[0], EXPLORER_COLLECTIONS,  normalize_address(j[1], True), normalize_address(j[1], False)) for j in collections])
 
-    open('README.md', 'w').write(open("readme.md.template").read() % (accounts_md, collections_md, jettons_md))
+    # open('README.md', 'w').write(open("readme.md.template").read() % (accounts_md, collections_md, jettons_md))
 
 
 def normalize_address(a, to_raw):
@@ -115,7 +120,7 @@ def normalize_address(a, to_raw):
             raise Exception("invalid address %s" % a)
         workchain = int(parts[0])
         addr = bytearray.fromhex(parts[1])
-    if to_raw:
+    if to_raw and False:
         return "%d:%s" % (workchain, addr.hex())
 
     if workchain == -1:
